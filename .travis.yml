@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gargi15/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true gargi15/react-test npm test
+
+after_success:
+  - docker build -t gargi15/multi-client ./client
+  - docker build -t gargi15/multi-nginx ./nginx
+  - docker build -t gargi15/multi-server ./server
+  - docker build -t gargi15/multi-worker ./worker
+  # Login to Docker Cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Push to docker hub
+  - docker push gargi15/multi-client
+  - docker push gargi15/multi-nginx
+  - docker push gargi15/multi-server
+  - docker push gargi15/multi-worker
